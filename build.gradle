@@ -1,0 +1,85 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import java.nio.file.Files
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+archivesBaseName = 'reposilite-plugins'
+group = 'com.matyrobbrt.reposiliteplugins'
+
+def plugins = [
+        'updateJson', 'webhooks'
+]
+
+sourceSets {
+    all
+}
+
+plugins.each {
+    final srcSet = sourceSets.create(it)
+    configurations.getByName(srcSet.compileOnlyConfigurationName).dependencies.add(project.dependencies.create(sourceSets.main.output))
+    configurations.getByName(srcSet.compileClasspathConfigurationName).extendsFrom(configurations.compileOnly)
+    configurations.allImplementation.dependencies.add(project.dependencies.create(srcSet.output))
+    tasks.shadowJar.from(srcSet.output)
+}
+
+application {
+    mainClass.set('com.reposilite.ReposiliteLauncherKt')
+}
+tasks.named('run', JavaExec).configure {
+    it.setWorkingDir(project.file('run'))
+    it.dependsOn(shadowJar)
+    it.doFirst {
+        final outDir = project.file('run/plugins').toPath()
+        Files.createDirectories(outDir)
+        final out = outDir.resolve('plugins.jar')
+        Files.deleteIfExists(out)
+        Files.copy(shadowJar.archiveFile.get().asFile.toPath(), out)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://maven.reposilite.com/releases'
+    }
+    maven {
+        url = 'https://maven.reposilite.com/snapshots'
+    }
+}
+
+configurations {
+    shade
+    implementation.extendsFrom(shade)
+
+    plugins.each {
+        getByName("${it}Implementation").extendsFrom(shade)
+    }
+}
+
+dependencies {
+    compileOnly('com.reposilite:reposilite:3.0.2:all')
+    runtimeOnly('com.reposilite:reposilite:3.0.2:all') {
+        exclude module: 'reposilite-frontend'
+    }
+
+    shade 'com.google.code.gson:gson:2.9.1'
+    shade('club.minnced:discord-webhooks:0.8.2') {
+        exclude group: 'org.jetbrains.kotlin'
+    }
+}
+
+tasks.register('relocateShadowJar', ConfigureShadowRelocation).configure {
+    it.target = tasks.shadowJar
+    it.prefix = 'com.matyrobbrt.reposiliteplugins.shade'
+}
+
+shadowJar {
+    from sourceSets.all.output
+    configurations = [project.configurations.shade]
+    dependsOn(tasks.relocateShadowJar)
+}
