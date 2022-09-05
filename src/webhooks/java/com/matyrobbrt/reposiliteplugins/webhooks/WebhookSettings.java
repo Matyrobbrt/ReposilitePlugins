@@ -40,7 +40,7 @@ public final class WebhookSettings implements SharedSettings {
         public boolean test(String s) {
             if (id.startsWith("regex:")) {
                 final var pattern = Pattern.compile(id.substring("regex:".length()));
-                return pattern.matcher(s).find();
+                return pattern.matcher(s).matches();
             }
             return id.equals(s);
         }
