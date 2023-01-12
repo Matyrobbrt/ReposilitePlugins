@@ -42,7 +42,7 @@ public class UpdateJsonFacade implements Facade {
             final var manifest = jarIs.getManifest().getMainAttributes();
             if (manifest.getValue("Built-on-Minecraft") == null) return;
             final var promos = gav.resolve(PROMO_NAME);
-            final var existingJson = event.getRepository().getFile(promos).mapErr(it -> new JsonObject()).map(in -> {
+            final var existingJson = event.getRepository().getStorageProvider().getFile(promos).mapErr(it -> new JsonObject()).map(in -> {
                 try (final var reader = new InputStreamReader(in)) {
                     return GSON.fromJson(reader, JsonObject.class);
                 } catch (Exception ignored) {}
@@ -63,7 +63,7 @@ public class UpdateJsonFacade implements Facade {
             ) ? "-recommended" : "-latest"), manifest.getValue(Attributes.Name.IMPLEMENTATION_VERSION));
 
             existingJson.add("promos", promosObject);
-            event.getRepository().putFile(promos, new ByteArrayInputStream(GSON.toJson(existingJson).getBytes(StandardCharsets.UTF_8)));
+            event.getRepository().getStorageProvider().putFile(promos, new ByteArrayInputStream(GSON.toJson(existingJson).getBytes(StandardCharsets.UTF_8)));
         }
     }
 }

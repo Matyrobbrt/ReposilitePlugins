@@ -8,14 +8,12 @@ import com.reposilite.plugin.api.Plugin;
 import com.reposilite.plugin.api.ReposilitePlugin;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-
 @Plugin(
     name = "webhooks",
     dependencies = { "maven", "generalplugins" },
     settings = WebhookSettings.class
 )
-public class ReposiliteWebhooks extends ReposilitePlugin {
+public class WebhooksPlugin extends ReposilitePlugin {
     @Override
     public @Nullable Facade initialize() {
         final var facade = new WebhookFacade(extensions().facade(MavenFacade.class), getLogger(), ConfigurationProvider.forFacade(

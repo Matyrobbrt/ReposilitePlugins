@@ -65,7 +65,7 @@ public class UpdateJsonCommands {
                     .resolve(UpdateJsonFacade.PROMO_NAME);
             final var json = new JsonObject();
             json.addProperty("homepage", homepage);
-            repo.putFile(gav, new ByteArrayInputStream(Utils.GSON.toJson(json).getBytes(StandardCharsets.UTF_8)));
+            repo.getStorageProvider().putFile(gav, new ByteArrayInputStream(Utils.GSON.toJson(json).getBytes(StandardCharsets.UTF_8)));
             commandContext.append("Updated update JSON!");
         }
     }
@@ -128,7 +128,7 @@ public class UpdateJsonCommands {
 
             final var gav = Location.of(path.replace(':', '/').replace('.', '/'))
                     .resolve(UpdateJsonFacade.PROMO_NAME);
-            final var is = repo.getFile(gav).orNull();
+            final var is = repo.getStorageProvider().getFile(gav).orNull();
             if (is == null) {
                 commandContext.append("Json promo not found!");
                 return;
@@ -143,7 +143,7 @@ public class UpdateJsonCommands {
                 }
                 promos.addProperty(mcVersion + "-" + type, version);
                 json.add("promos", promos);
-                repo.putFile(gav, new ByteArrayInputStream(Utils.GSON.toJson(json).getBytes(StandardCharsets.UTF_8)));
+                repo.getStorageProvider().putFile(gav, new ByteArrayInputStream(Utils.GSON.toJson(json).getBytes(StandardCharsets.UTF_8)));
                 commandContext.append("Updated update JSON!");
             } catch (IOException e) {
                 LOG.error("Encountered exception updating update JSON: ", e);
@@ -196,14 +196,14 @@ public class UpdateJsonCommands {
 
             final var gav = Location.of(path.replace(':', '/').replace('.', '/'))
                     .resolve(UpdateJsonFacade.PROMO_NAME);
-            try (final var url = repo.getFile(gav).orNull()) {
+            try (final var url = repo.getStorageProvider().getFile(gav).orNull()) {
                 if (url == null) {
                     commandContext.append("Json promo not found!");
                     return;
                 }
                 final var json = Utils.GSON.fromJson(new InputStreamReader(url), JsonObject.class);
                 json.addProperty("homepage", homepage);
-                repo.putFile(gav, new ByteArrayInputStream(Utils.GSON.toJson(json).getBytes(StandardCharsets.UTF_8)));
+                repo.getStorageProvider().putFile(gav, new ByteArrayInputStream(Utils.GSON.toJson(json).getBytes(StandardCharsets.UTF_8)));
                 commandContext.append("Updated update JSON!");
             } catch (IOException e) {
                 LOG.error("Encountered exception updating update JSON: ", e);

@@ -1,22 +1,32 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import java.nio.file.Files
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 plugins {
     id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.0'
     id 'idea'
     id 'application'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-archivesBaseName = 'reposilite-plugins'
+archivesBaseName = 'reposiliteplugins'
 group = 'com.matyrobbrt.reposiliteplugins'
 
 def plugins = [
-        'updateJson', 'webhooks'
+        'updateJson', 'webhooks', 'badges',
+        'uncompressed', 'pluginInstaller'
 ]
 
 sourceSets {
     all
+}
+
+sourceSets {
+    restart
 }
 
 plugins.each {
@@ -36,7 +46,7 @@ tasks.named('run', JavaExec).configure {
     it.doFirst {
         final outDir = project.file('run/plugins').toPath()
         Files.createDirectories(outDir)
-        final out = outDir.resolve('plugins.jar')
+        final out = outDir.resolve("reposiliteplugins-${version}.jar")
         Files.deleteIfExists(out)
         Files.copy(shadowJar.archiveFile.get().asFile.toPath(), out)
     }
@@ -62,8 +72,8 @@ configurations {
 }
 
 dependencies {
-    compileOnly('com.reposilite:reposilite:3.0.2:all')
-    runtimeOnly('com.reposilite:reposilite:3.0.2:all') {
+    compileOnly('com.reposilite:reposilite:3.2.5:all')
+    runtimeOnly('com.reposilite:reposilite:3.2.5:all') {
         exclude module: 'reposilite-frontend'
     }
 
@@ -78,8 +88,34 @@ tasks.register('relocateShadowJar', ConfigureShadowRelocation).configure {
     it.prefix = 'com.matyrobbrt.reposiliteplugins.shade'
 }
 
+tasks.register('restartJar', Jar).configure {
+    it.from(sourceSets.restart.output)
+    it.manifest.attributes(['Main-Class': 'com.matyrobbrt.reposiliteplugins.restart.Main'])
+    it.archiveFileName = 'restarter.jar'
+}
+
 shadowJar {
     from sourceSets.all.output
     configurations = [project.configurations.shade]
-    dependsOn(tasks.relocateShadowJar)
+
+    dependsOn(tasks.relocateShadowJar, tasks.restartJar)
+
+    doLast {
+        final copyPath = file("$buildDir/libs/old.jar").toPath()
+        Files.deleteIfExists(copyPath)
+        Files.copy(archiveFile.get().asFile.toPath(), copyPath)
+        try (final is = new ZipInputStream(Files.newInputStream(copyPath));
+            final zis = new ZipOutputStream(new FileOutputStream(archiveFile.get().asFile))) {
+            zis.putNextEntry(new ZipEntry('restarter.jar'))
+            zis.write(((File)tasks.restartJar.archiveFile.get().asFile).readBytes())
+            zis.closeEntry()
+
+            ZipEntry entry
+            while ((entry = is.nextEntry) !== null) {
+                zis.putNextEntry(entry)
+                zis.write(is.readAllBytes())
+                zis.closeEntry()
+            }
+        }
+    }
 }

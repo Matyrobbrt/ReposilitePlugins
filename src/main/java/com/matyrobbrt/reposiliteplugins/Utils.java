@@ -5,8 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.reposilite.journalist.Logger;
 import com.reposilite.storage.api.Location;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class Utils {
@@ -34,6 +37,18 @@ public class Utils {
             return new GavData(String.join(".", groups), name, version);
         }
         return null;
+    }
+
+    public static String replace(String in, Map<String, String> map) {
+        var data = in;
+        for (final var entry : map.entrySet()) {
+            data = data.replace("${" + entry.getKey() + "}", entry.getValue());
+        }
+        return data;
+    }
+
+    public static <T> T orElse(@Nullable T val, @Nonnull T defaultValue) {
+        return val == null ? defaultValue : val;
     }
 
     @SuppressWarnings("ClassCanBeRecord")

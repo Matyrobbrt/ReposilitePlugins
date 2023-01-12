@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 
 @Plugin(name = "forgeupdatejson", dependencies = "maven")
-public class ReposiliteUpdateJson extends ReposilitePlugin {
+public class UpdateJsonPlugin extends ReposilitePlugin {
     @Override
     public @Nullable Facade initialize() {
         final var maven = extensions().facade(MavenFacade.class);

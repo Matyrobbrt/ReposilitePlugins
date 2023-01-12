@@ -10,12 +10,16 @@ import java.util.regex.Pattern;
 
 @Doc(title = "Webhooks", description = "Webhook settings")
 public final class WebhookSettings implements SharedSettings {
-    @Doc(title = "webhooks", description = "All webhooks")
+
     public List<Webhook> webhooks = List.of(
             new Webhook("example", "https://example.com", List.of(
                     new Artifact("com.example", "example")
             ), true)
     );
+    @Doc(title = "webhooks", description = "All webhooks")
+    public List<Webhook> getWebhooks() {
+        return webhooks;
+    }
 
     @Doc(title = "Webhook", description = "Configuration for a specific webhook")
     public record Webhook(
