@@ -26,14 +26,14 @@ internal class UncompressedFacade(
         path = "/uncompressed/{repository}/{gav}",
         methods = [HttpMethod.GET],
         tags = ["Maven"],
-        summary = "Browse the contents of repositories",
+        summary = "Browse the contents of repositories returning uncompressed files",
         description = "The route may return various responses to properly handle Maven specification and frontend application using the same path.",
         pathParams = [
             OpenApiParam(name = "repository", description = "Destination repository", required = true),
             OpenApiParam(name = "gav", description = "Artifact path qualifier", required = true, allowEmptyValue = true)
         ],
         responses = [
-            OpenApiResponse(status = "200", description = "Input stream of requested file", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
+            OpenApiResponse(status = "200", description = "Input stream of requested file, uncompressed", content = [OpenApiContent(type = FORM_DATA_MULTIPART)]),
             OpenApiResponse(status = "404", description = "Returns 404 (for Maven) with frontend (for user) as a response if requested resource is not located in the current repository")
         ]
     )

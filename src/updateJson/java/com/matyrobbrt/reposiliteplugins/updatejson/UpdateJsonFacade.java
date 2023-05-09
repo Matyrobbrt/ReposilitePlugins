@@ -39,7 +39,9 @@ public class UpdateJsonFacade implements Facade {
         )), maven::findFile).orNull();
         if (latest == null) return;
         try (final var jarIs = new JarInputStream(latest.component2())) {
-            final var manifest = jarIs.getManifest().getMainAttributes();
+            final var mf = jarIs.getManifest();
+            if (mf == null) return;
+            final var manifest = mf.getMainAttributes();
             if (manifest.getValue("Built-on-Minecraft") == null) return;
             final var promos = gav.resolve(PROMO_NAME);
             final var existingJson = event.getRepository().getStorageProvider().getFile(promos).mapErr(it -> new JsonObject()).map(in -> {
