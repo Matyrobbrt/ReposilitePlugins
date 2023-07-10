@@ -1,6 +1,6 @@
 com.matyrobbrt.reposiliteplugins.GeneralPluginsPlugin
 com.matyrobbrt.reposiliteplugins.updatejson.UpdateJsonPlugin
 com.matyrobbrt.reposiliteplugins.webhooks.WebhooksPlugin
-com.matyrobbrt.reposiliteplugins.badges.BadgesPlugin
 com.matyrobbrt.reposiliteplugins.uncompressed.UncompressedPlugin
 com.matyrobbrt.reposiliteplugins.plugininstaller.PluginInstallerPlugin
+com.matyrobbrt.reposiliteplugins.defaultrepository.DefaultRepositoryPlugin

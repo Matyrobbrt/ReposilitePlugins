@@ -17,8 +17,10 @@ archivesBaseName = 'reposiliteplugins'
 group = 'com.matyrobbrt.reposiliteplugins'
 
 def plugins = [
-        'updateJson', 'webhooks', 'badges',
-        'uncompressed', 'pluginInstaller'
+        'updateJson', 'webhooks',
+        'uncompressed', 'pluginInstaller',
+        // The badges plugin is somewhat useless in its current form 'badges'
+        'defaultRepository'
 ]
 
 sourceSets {
