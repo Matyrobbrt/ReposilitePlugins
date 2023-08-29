@@ -1,7 +1,6 @@
 package com.matyrobbrt.reposiliteplugins.defaultrepository
 
 import com.matyrobbrt.reposiliteplugins.ConfigurationProvider
-import com.reposilite.configuration.local.LocalConfiguration
 import com.reposilite.maven.MavenFacade
 import com.reposilite.maven.api.LookupRequest
 import com.reposilite.plugin.api.Facade
@@ -47,9 +46,10 @@ class DefaultRepositoryPlugin : ReposilitePlugin() {
                         )
                     )
                         .peek { (details, file) ->
+                            val determinedExtension = context.path().substringAfterLast(".", "")
                             context.resultAttachment(
                                 details.name,
-                                details.contentType,
+                                if (determinedExtension == "") details.contentType else (ContentType.getContentTypeByExtension(determinedExtension) ?: ContentType.APPLICATION_OCTET_STREAM),
                                 details.contentLength,
                                 file
                             )
