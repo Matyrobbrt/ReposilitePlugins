@@ -76,10 +76,10 @@ class DefaultRepositoryPlugin : ReposilitePlugin() {
 
         contentLength(contentLength)
 
-        when {
-            acceptsBody() -> data.copyTo(res().outputStream)
-            else -> data.silentClose()
+        if (acceptsBody()) {
+            data.copyTo(res().outputStream)
         }
+        data.silentClose()
 
         contentType(contentType)
         status(200)
