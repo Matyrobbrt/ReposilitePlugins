@@ -14,8 +14,11 @@ import com.reposilite.storage.api.Location
 import com.reposilite.web.api.HttpServerInitializationEvent
 import io.javalin.http.ContentType
 import io.javalin.http.Context
+import io.javalin.http.Header
+import io.javalin.http.Header.CACHE_CONTROL
 import java.io.InputStream
 import java.net.URLEncoder
+import kotlin.time.Duration.Companion.hours
 
 @Plugin(
     name = "default-repository",
@@ -23,6 +26,8 @@ import java.net.URLEncoder
     settings = DefaultRepositorySettings::class
 )
 class DefaultRepositoryPlugin : ReposilitePlugin() {
+    internal val maxAge = System.getProperty("reposilite.maven.maxAge", 1.hours.inWholeSeconds.toString()).toLong()
+
     override fun initialize(): Facade? {
         val maven = extensions().facade(MavenFacade::class.java)
         val config = ConfigurationProvider.forFacade(
@@ -39,19 +44,18 @@ class DefaultRepositoryPlugin : ReposilitePlugin() {
                         return@before
                     }
                     val defaultRepo = config.get().repository ?: return@before
-                    println(Location.of(context.path()))
                     maven.findFile(
                         LookupRequest(
                             null, defaultRepo, Location.of(context.path())
                         )
                     )
-                        .peek { (details, file) ->
+                        .peek { (details, file, cachable) ->
                             val determinedExtension = context.path().substringAfterLast(".", "")
                             context.resultAttachment(
                                 details.name,
                                 if (determinedExtension == "") details.contentType else (ContentType.getContentTypeByExtension(determinedExtension) ?: ContentType.APPLICATION_OCTET_STREAM),
                                 details.contentLength,
-                                file
+                                file, cachable
                             )
                             throw BadException()
                         }
@@ -68,13 +72,20 @@ class DefaultRepositoryPlugin : ReposilitePlugin() {
         name: String,
         contentType: ContentType,
         contentLength: Long,
-        data: InputStream
+        data: InputStream,
+        cache: Boolean
     ) {
         if (!contentType.isHumanReadable) {
             contentDisposition("""attachment; filename="$name"; filename*=utf-8''${URLEncoder.encode(name, "utf-8")}""")
         }
 
         contentLength(contentLength)
+
+        if (cache) {
+            header(CACHE_CONTROL, "public, max-age=$maxAge")
+        } else {
+            header(CACHE_CONTROL, "no-cache, no-store, max-age=0")
+        }
 
         if (acceptsBody()) {
             data.copyTo(res().outputStream)
