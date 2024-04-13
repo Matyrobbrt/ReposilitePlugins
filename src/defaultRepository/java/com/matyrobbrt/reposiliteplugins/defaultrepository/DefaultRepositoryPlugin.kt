@@ -36,33 +36,37 @@ class DefaultRepositoryPlugin : ReposilitePlugin() {
         extensions().registerEvent(
             HttpServerInitializationEvent::class.java
         ) { event: HttpServerInitializationEvent ->
-            event.javalin.before { context: Context ->
-                val pathParts =
-                    context.path().split("/".toRegex(), limit = 2).toTypedArray()
-                if (pathParts.size == 2) {
-                    if (maven.getRepository(pathParts[0]) != null) {
-                        return@before
-                    }
-                    val defaultRepo = config.get().repository ?: return@before
-                    maven.findFile(
-                        LookupRequest(
-                            null, defaultRepo, Location.of(context.path())
-                        )
-                    )
-                        .peek { (details, file, cachable) ->
-                            val determinedExtension = context.path().substringAfterLast(".", "")
-                            context.resultAttachment(
-                                details.name,
-                                if (determinedExtension == "") details.contentType else (ContentType.getContentTypeByExtension(determinedExtension) ?: ContentType.APPLICATION_OCTET_STREAM),
-                                details.contentLength,
-                                file, cachable
-                            )
-                            throw BadException()
+            event.config.router.mount { router ->
+                router.before { context: Context ->
+                    val pathParts =
+                        context.path().split("/".toRegex(), limit = 2).toTypedArray()
+                    if (pathParts.size == 2) {
+                        if (maven.getRepository(pathParts[0]) != null) {
+                            return@before
                         }
+                        val defaultRepo = config.get().repository ?: return@before
+                        maven.findFile(
+                            LookupRequest(
+                                null, defaultRepo, Location.of(context.path())
+                            )
+                        )
+                            .peek { (details, file, cachable) ->
+                                val determinedExtension = context.path().substringAfterLast(".", "")
+                                context.resultAttachment(
+                                    details.name,
+                                    if (determinedExtension == "") details.contentType else (ContentType.getContentTypeByExtension(determinedExtension) ?: ContentType.APPLICATION_OCTET_STREAM),
+                                    details.contentLength,
+                                    file, cachable
+                                )
+                                throw BadException()
+                            }
+                    }
                 }
             }
-            event.javalin.exception(BadException::class.java) { _, _ ->
-                // Just ignore
+            event.config.router.mount { router ->
+                router.exception(BadException::class.java) { _, _ ->
+                    // Just ignore
+                }
             }
         }
         return null

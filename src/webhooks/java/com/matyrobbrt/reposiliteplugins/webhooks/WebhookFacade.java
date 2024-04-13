@@ -101,7 +101,6 @@ public record WebhookFacade(MavenFacade maven, Logger logger, ConfigurationProvi
     public List<String> getWebhookTargets(String repoName, Location gav) {
         final var location = Objects.requireNonNull(Utils.getData(repoName, gav));
         return settings.get().getWebhooks().stream()
-                .filter(WebhookSettings.Webhook::enabled)
                 .filter(it -> it.artifacts().stream().anyMatch(art -> art.group().equals(location.group) && art.test(location.name)))
                 .map(WebhookSettings.Webhook::webhookUrl)
                 .toList();

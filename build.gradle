@@ -74,8 +74,8 @@ configurations {
 }
 
 dependencies {
-    compileOnly('com.reposilite:reposilite:3.5.0:all')
-    runtimeOnly('com.reposilite:reposilite:3.5.0:all') {
+    compileOnly('com.reposilite:reposilite:3.5.10:all')
+    runtimeOnly('com.reposilite:reposilite:3.5.10:all') {
         exclude module: 'reposilite-frontend'
     }
 

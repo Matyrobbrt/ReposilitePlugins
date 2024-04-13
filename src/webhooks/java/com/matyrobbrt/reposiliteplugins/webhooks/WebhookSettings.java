@@ -14,7 +14,7 @@ public final class WebhookSettings implements SharedSettings {
     public List<Webhook> webhooks = List.of(
             new Webhook("example", "https://example.com", List.of(
                     new Artifact("com.example", "example")
-            ), true)
+            ))
     );
     @Doc(title = "webhooks", description = "All webhooks")
     public List<Webhook> getWebhooks() {
@@ -29,9 +29,7 @@ public final class WebhookSettings implements SharedSettings {
             @Doc(title = "url", description = "The URL of the webhook")
             String webhookUrl,
             @Doc(title = "artifacts", description = "The artifacts this webhook listens for.e")
-            List<Artifact> artifacts,
-            @Doc(title = "enabled", description = "If the webhook is enabled")
-            boolean enabled
+            List<Artifact> artifacts
     ) {}
     public record Artifact(
             @Doc(title = "group", description = "The artifact's group")
